@@ -5,14 +5,14 @@ require("dotenv").config();
 const app = express();
 const PORT = 5000;
 
+app.use(express.json());
+const carRoutes = require("./routes/carRoutes");
+
+app.use("/api/cars", carRoutes);
+
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.send("Car Rental API is running!");
 });
-
-app.get("/cars", (req, res) => {
-  res.send("Car 1");
-});
-
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);

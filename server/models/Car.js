@@ -4,40 +4,40 @@ const carSchema = new mongoose.Schema(
   {
     brand: {
       type: String,
-      require: true,
+      required: true,
       trim: true,
     },
     model: {
       type: String,
-      require: true,
+      required: true,
       trim: true,
     },
     year: {
       type: Number,
-      require: true,
+      required: true,
     },
     pricePerDay: {
       type: Number,
-      require: true,
+      required: true,
       min: 0,
     },
     transmission: {
       type: String,
       enum: ["Manual", "Automatic"],
-      require: true,
+      required: true,
     },
     fuelType: {
       type: String,
       enum: ["Petrol", "Diesel", "Electric", "Hybrid"],
-      require: true,
+      required: true,
     },
     seats: {
       type: Number,
-      require: true,
+      required: true,
     },
     color: {
       type: String,
-      require: true,
+      required: true,
     },
   },
   { timestamps: true },
@@ -46,3 +46,4 @@ const carSchema = new mongoose.Schema(
 const Car = mongoose.model("Car", carSchema);
 
 module.exports = Car;
+
