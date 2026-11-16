@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 require("dotenv").config();
+const Car = require("../server/models/Car");
 
 const app = express();
 const PORT = 5000;
@@ -10,8 +11,14 @@ const carRoutes = require("./routes/carRoutes");
 
 app.use("/api/cars", carRoutes);
 
-app.get("/", (req, res) => {
-  res.send("Car Rental API is running!");
+app.get("/", async (req, res) => {
+  const cars = await Car.find();
+
+  res.status(200).json({
+    success: true,
+    count: cars.length,
+    data: cars,
+  });
 });
 const connectDB = async () => {
   try {
