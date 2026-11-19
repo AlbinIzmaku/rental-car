@@ -30,12 +30,12 @@ const getCarById = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: car,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -68,22 +68,15 @@ const updateCar = async (req, res) => {
       runValidators: true,
     });
 
-    if (!updatedCar) {
-      return res.status(404).json({
-        success: false,
-        message: "Car not found",
-      });
-    }
-
     res.status(200).json({
       success: true,
       message: "Car updated successfully",
       data: updatedCar,
     });
   } catch (error) {
-    res.status(400).json({
+    res.status(404).json({
       success: false,
-      message: error.message,
+      message: "Car not found",
     });
   }
 };
