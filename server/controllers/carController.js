@@ -106,19 +106,38 @@ const deleteCar = async (req, res) => {
   }
 };
 
+
 const getAllCars = async (req, res) => {
   try {
-    const { search } = req.query;
+    const { search, fuelType, transmission, minPrice, maxPrice } = req.query;
 
     let query = {};
 
     if (search) {
-      query = {
-        $or: [
-          { brand: { $regex: search, $options: "i" } },
-          { model: { $regex: search, $options: "i" } },
-        ],
-      };
+      query.$or = [
+        { brand: { $regex: search, $options: "i" } },
+        { model: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    if (fuelType) {
+      query.fuelType = fuelType;
+    }
+
+    if (transmission) {
+      query.transmission = transmission;
+    }
+
+    if (minPrice || maxPrice) {
+      query.pricePerDay = {};
+
+      if (minPrice) {
+        query.pricePerDay.$gte = Number(minPrice);
+      }
+
+      if (maxPrice) {
+        query.pricePerDay.$lte = Number(maxPrice);
+      }
     }
 
     const cars = await Car.find(query);
