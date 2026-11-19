@@ -106,4 +106,41 @@ const deleteCar = async (req, res) => {
   }
 };
 
-module.exports = { getCars, getCarById, createCar, updateCar, deleteCar };
+const getAllCars = async (req, res) => {
+  try {
+    const { search } = req.query;
+
+    let query = {};
+
+    if (search) {
+      query = {
+        $or: [
+          { brand: { $regex: search, $options: "i" } },
+          { model: { $regex: search, $options: "i" } },
+        ],
+      };
+    }
+
+    const cars = await Car.find(query);
+
+    res.status(200).json({
+      success: true,
+      results: cars.length,
+      data: cars,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+module.exports = {
+  getCars,
+  getCarById,
+  createCar,
+  updateCar,
+  deleteCar,
+  getAllCars,
+};
