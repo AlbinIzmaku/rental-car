@@ -116,10 +116,28 @@ const getAllCars = async (req, res) => {
       maxPrice,
       sortBy,
       order,
+      page = 1,
+      limit = 10,
     } = req.query;
 
     let query = {};
     let sortOptions = {};
+
+    const currentPage = Number(page);
+    const pageSize = Number(limit);
+
+    if (
+      !Number.isInteger(currentPage) ||
+      !Number.isInteger(pageSize) ||
+      currentPage < 1 ||
+      pageSize < 1 ||
+      pageSize > 100
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid pagination parameters",
+      });
+    }
     if (sortBy) {
       sortOptions[sortBy] = order === "desc" ? -1 : 1;
     }
@@ -151,10 +169,27 @@ const getAllCars = async (req, res) => {
       }
     }
 
-    const cars = await Car.find(query).sort(sortOptions);
+    const skip = (currentPage - 1) * pageSize;
+
+    const totalCars = await Car.countDocuments(query);
+
+    const cars = await Car.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(pageSize);
+
+    const totalPages = Math.ceil(totalCars / pageSize);
 
     res.status(200).json({
       success: true,
+      pagination: {
+        totalCars,
+        totalPages,
+        currentPage,
+        pageSize,
+        hasNextPage: currentPage < totalPages,
+        hasPreviousPage: currentPage > 1
+      },
       results: cars.length,
       data: cars,
     });
