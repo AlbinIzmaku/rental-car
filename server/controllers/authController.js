@@ -106,4 +106,103 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+const getMe = async (req, res) => {
+  try {
+    res.status(200).json({
+      success: true,
+      data: req.user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const updateMe = async (req, res) => {
+  try {
+    const { name, email } = req.body;
+
+    const updates = {};
+
+    if (name !== undefined) updates.name = name;
+    if (email !== undefined) updates.email = email;
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide at least one field to update",
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(req.user._id, updates, {
+      new: true,
+      runValidators: true,
+    }).select("-password");
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: user,
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Email is already registered",
+      });
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+};
+
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide current and new passwords",
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be at least 8 characters",
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+
+    const isPasswordCorrect = await user.comparePassword(currentPassword);
+
+    if (!isPasswordCorrect) {
+      return res.status(401).json({
+        success: false,
+        message: "Current password is incorrect",
+      });
+    }
+
+    user.password = newPassword;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+module.exports = { register, login, getMe, updateMe, changePassword };
