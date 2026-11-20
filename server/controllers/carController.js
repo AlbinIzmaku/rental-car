@@ -106,12 +106,23 @@ const deleteCar = async (req, res) => {
   }
 };
 
-
 const getAllCars = async (req, res) => {
   try {
-    const { search, fuelType, transmission, minPrice, maxPrice } = req.query;
+    const {
+      search,
+      fuelType,
+      transmission,
+      minPrice,
+      maxPrice,
+      sortBy,
+      order,
+    } = req.query;
 
     let query = {};
+    let sortOptions = {};
+    if (sortBy) {
+      sortOptions[sortBy] = order === "desc" ? -1 : 1;
+    }
 
     if (search) {
       query.$or = [
@@ -140,7 +151,7 @@ const getAllCars = async (req, res) => {
       }
     }
 
-    const cars = await Car.find(query);
+    const cars = await Car.find(query).sort(sortOptions);
 
     res.status(200).json({
       success: true,
