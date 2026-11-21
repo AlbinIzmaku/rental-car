@@ -75,3 +75,26 @@ const createBooking = async (req, res) => {
     });
   }
 };
+
+const getMyBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find({
+      user: req.user._id,
+    })
+      .populate("car")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      results: bookings.length,
+      data: bookings,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+module.exports = { createBooking, getMyBookings };
