@@ -188,7 +188,7 @@ const getAllCars = async (req, res) => {
         currentPage,
         pageSize,
         hasNextPage: currentPage < totalPages,
-        hasPreviousPage: currentPage > 1
+        hasPreviousPage: currentPage > 1,
       },
       results: cars.length,
       data: cars,

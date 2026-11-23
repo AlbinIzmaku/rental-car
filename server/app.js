@@ -7,10 +7,12 @@ app.use(express.json());
 const carRoutes = require("./routes/carRoutes");
 const authRoutes = require("./routes/authRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
+const favoriteRoutes = require("./routes/favoriteRoutes");
 
 app.use("/api/cars", carRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/favorites", favoriteRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({

@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const User = require("../models/User");
-const Car = require("../models/car");
+const Car = require("../models/Car");
 
 const addFavorite = async (req, res) => {
   try {
@@ -42,3 +42,5 @@ const addFavorite = async (req, res) => {
     });
   }
 };
+
+module.exports = { addFavorite };
