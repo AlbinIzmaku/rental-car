@@ -1,4 +1,6 @@
 const Car = require("../models/Car");
+const cloudinary = require("../config/cloudinary");
+const streamifier = require("streamifier");
 
 const getCars = async (req, res) => {
   try {
@@ -201,6 +203,66 @@ const getAllCars = async (req, res) => {
   }
 };
 
+const uploadCarImages = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const car = await Car.findById(id);
+
+    if (!car) {
+      return res.status(404).json({
+        success: false,
+        message: "Car not found",
+      });
+    }
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please upload at least one image",
+      });
+    }
+
+    const uploadToCloudinary = (file) => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: "car-rental/cars",
+            resource_type: "image",
+          },
+          (error, result) => {
+            if (error) return reject(error);
+
+            resolve({
+              url: result.secure_url,
+              public_id: result.public_id,
+            });
+          },
+        );
+
+        streamifier.createReadStream(file.buffer).pipe(stream);
+      });
+    };
+
+    const uploadedImages = await Promise.all(req.files.map(uploadToCloudinary));
+
+    car.images.push(...uploadedImages);
+
+    await car.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Images uploaded successfully",
+      data: car,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getCars,
   getCarById,
@@ -208,4 +270,5 @@ module.exports = {
   updateCar,
   deleteCar,
   getAllCars,
+  uploadCarImages,
 };

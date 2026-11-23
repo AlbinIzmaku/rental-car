@@ -39,6 +39,18 @@ const carSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    images: [
+      {
+        url: {
+          type: String,
+          required: true,
+        },
+        public_id: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
   },
   { timestamps: true },
 );
@@ -46,4 +58,3 @@ const carSchema = new mongoose.Schema(
 const Car = mongoose.model("Car", carSchema);
 
 module.exports = Car;
-
