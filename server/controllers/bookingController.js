@@ -1,5 +1,6 @@
 const Booking = require("../models/Booking");
 const Car = require("../models/Car");
+const mongoose = require("mongoose")
 
 const createBooking = async (req, res) => {
   try {
@@ -149,4 +150,64 @@ const getAllBookings = async (req, res) => {
   }
 };
 
-module.exports = { createBooking, getMyBookings, getAllBookings };
+const cancelBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid booking ID",
+      });
+    }
+
+    const booking = await Booking.findById(id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    const isOwner = booking.user.toString() === req.user._id.toString();
+
+    const isAdmin = req.user.role === "admin";
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not allowed to cancel this booking",
+      });
+    }
+
+    if (!["pending", "confirmed"].includes(booking.status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot cancel a ${booking.status} booking`,
+      });
+    }
+
+    booking.status = "cancelled";
+
+    await booking.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Booking cancelled successfully",
+      data: booking,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+module.exports = {
+  createBooking,
+  getMyBookings,
+  getAllBookings,
+  cancelBooking,
+};
