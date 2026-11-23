@@ -1,6 +1,6 @@
 const Booking = require("../models/Booking");
 const Car = require("../models/Car");
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
 const createBooking = async (req, res) => {
   try {
@@ -205,9 +205,70 @@ const cancelBooking = async (req, res) => {
   }
 };
 
+const updateBookingStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid booking ID",
+      });
+    }
+
+    const allowedStatus = ["confirmed", "cancelled", "completed"];
+
+    if (!allowedStatus.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid booking status",
+      });
+    }
+
+    const booking = await Booking.findById(id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    const allowedTransitions = {
+      pending: ["confirmed", "cancelled"],
+      confirmed: ["completed", "cancelled"],
+      cancelled: [],
+      completed: [],
+    };
+
+    if (!allowedTransitions[booking.status].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot change booking status from ${booking.status} to ${status}`,
+      });
+    }
+
+    booking.status = status;
+
+    await booking.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Booking status updated successfully",
+      data: booking,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 module.exports = {
   createBooking,
   getMyBookings,
   getAllBookings,
   cancelBooking,
+  updateBookingStatus,
 };
