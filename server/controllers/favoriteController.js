@@ -43,4 +43,21 @@ const addFavorite = async (req, res) => {
   }
 };
 
-module.exports = { addFavorite };
+const getFavorites = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate("favorites");
+
+    res.status(200).json({
+      success: true,
+      results: user.favorites.length,
+      data: user.favorites,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+module.exports = { addFavorite, getFavorites };
