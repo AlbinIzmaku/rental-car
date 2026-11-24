@@ -11,6 +11,7 @@ const {
   getAllCars,
   uploadCarImages,
   deleteCarImage,
+  setPrimaryImage,
 } = require("../controllers/carController");
 
 const { protect, authorize } = require("../middleware/authMiddleware");
@@ -30,5 +31,11 @@ router.post(
   uploadCarImages,
 );
 router.delete("/:id/images", protect, authorize("admin"), deleteCarImage);
+router.put(
+  "/:id/images/:imageId/primary",
+  protect,
+  authorize("admin"),
+  setPrimaryImage,
+);
 
 module.exports = router;

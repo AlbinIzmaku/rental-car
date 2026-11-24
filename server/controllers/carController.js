@@ -247,6 +247,12 @@ const uploadCarImages = async (req, res) => {
 
     const uploadedImages = await Promise.all(req.files.map(uploadToCloudinary));
 
+    const hasPrimaryImage = car.images.some((image) => image.isPrimary);
+
+    uploadedImages.forEach((image, index) => {
+      image.isPrimary = !hasPrimaryImage && index === 0;
+    });
+
     car.images.push(...uploadedImages);
 
     await car.save();
@@ -331,6 +337,59 @@ const deleteCarImage = async (req, res) => {
   }
 };
 
+const setPrimaryImage = async (req, res) => {
+  try {
+    const { id, imageId } = req.params;
+
+    if (
+      !mongoose.Types.ObjectId.isValid(id) ||
+      !mongoose.Types.ObjectId.isValid(imageId)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid car or image IDs",
+      });
+    }
+
+    const car = await Car.findById(id);
+
+    if (!car) {
+      return res.status(404).json({
+        success: false,
+        message: "Car not found",
+      });
+    }
+
+    const selectedImage = car.images.id(imageId);
+
+    if (!selectedImage) {
+      return res.status(404).json({
+        success: false,
+        message: "Image not found",
+      });
+    }
+
+    car.images.forEach((image) => {
+      image.isPrimary = false;
+    });
+
+    selectedImage.isPrimary = true;
+
+    await car.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Primary image updated successfully",
+      data: car,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getCars,
   getCarById,
@@ -340,4 +399,5 @@ module.exports = {
   getAllCars,
   uploadCarImages,
   deleteCarImage,
+  setPrimaryImage
 };

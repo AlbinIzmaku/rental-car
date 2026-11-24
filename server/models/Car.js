@@ -49,6 +49,10 @@ const carSchema = new mongoose.Schema(
           type: String,
           required: true,
         },
+        isPrimary: {
+          type: Boolean,
+          default: false,
+        },
       },
     ],
   },
