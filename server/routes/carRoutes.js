@@ -10,6 +10,7 @@ const {
   deleteCar,
   getAllCars,
   uploadCarImages,
+  deleteCarImage,
 } = require("../controllers/carController");
 
 const { protect, authorize } = require("../middleware/authMiddleware");
@@ -28,5 +29,6 @@ router.post(
   upload.array("images", 10),
   uploadCarImages,
 );
+router.delete("/:id/images", protect, authorize("admin"), deleteCarImage);
 
 module.exports = router;

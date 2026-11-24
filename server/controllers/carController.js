@@ -1,6 +1,7 @@
 const Car = require("../models/Car");
 const cloudinary = require("../config/cloudinary");
 const streamifier = require("streamifier");
+const mongoose = require("mongoose");
 
 const getCars = async (req, res) => {
   try {
@@ -263,6 +264,73 @@ const uploadCarImages = async (req, res) => {
   }
 };
 
+const deleteCarImage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { public_id } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid car ID",
+      });
+    }
+
+    if (!public_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide public_id",
+      });
+    }
+
+    const car = await Car.findById(id);
+
+    if (!car) {
+      return res.status(404).json({
+        success: false,
+        message: "Car not found",
+      });
+    }
+
+    const imageExists = car.images.some(
+      (image) => image.public_id === public_id,
+    );
+
+    if (!imageExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Image not found for this car",
+      });
+    }
+
+    const result = await cloudinary.uploader.destroy(public_id, {
+      resource_type: "image",
+    });
+
+    if (!["ok", "not found"].includes(result.result)) {
+      return res.status(502).json({
+        success: false,
+        message: "Could not delete image from Cloudinary",
+      });
+    }
+
+    car.images = car.images.filter((image) => image.public_id !== public_id);
+
+    await car.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Car image deleted successfully",
+      data: car,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getCars,
   getCarById,
@@ -271,4 +339,5 @@ module.exports = {
   deleteCar,
   getAllCars,
   uploadCarImages,
+  deleteCarImage,
 };
