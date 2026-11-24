@@ -104,4 +104,49 @@ const createReview = async (req, res) => {
   }
 };
 
+const getCarReviews = async (req, res) => {
+  try {
+    const { carId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(carId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid car ID",
+      });
+    }
+
+    const car = await Car.findById(carId);
+
+    if (!car) {
+      return res.status(404).json({
+        success: false,
+        message: "Car not found",
+      });
+    }
+
+    const reviews = await Review.find({ car: carId })
+      .populate("user", "name")
+      .sort({ createdAt: -1 });
+
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+
+    const averageRating =
+      reviews.length > 0
+        ? Number((totalRating / reviews.length).toFixed(1))
+        : 0;
+
+    res.status(200).json({
+      success: true,
+      results: reviews.length,
+      averageRating,
+      data: reviews,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = { createReview };
