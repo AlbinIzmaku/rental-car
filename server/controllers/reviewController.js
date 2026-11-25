@@ -149,4 +149,26 @@ const getCarReviews = async (req, res) => {
   }
 };
 
-module.exports = { createReview };
+const getMyReviews = async (req, res) => {
+  try {
+    const reviews = await Review.find({
+      user: req.user._id,
+    })
+      .populate("car")
+      .populate("booking")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      results: reviews.length,
+      data: reviews,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+module.exports = { createReview, getCarReviews };
