@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema(
         ref: "Car",
       },
     ],
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,

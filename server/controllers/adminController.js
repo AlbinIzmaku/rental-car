@@ -201,7 +201,6 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-
 const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -213,9 +212,7 @@ const getUserById = async (req, res) => {
       });
     }
 
-    const user = await User.findById(id)
-      .select("-password")
-      .lean();
+    const user = await User.findById(id).select("-password").lean();
 
     if (!user) {
       return res.status(404).json({
@@ -246,9 +243,87 @@ const getUserById = async (req, res) => {
   }
 };
 
+const updateUserStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    if (typeof isActive !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "isActive must be a boolean",
+      });
+    }
+
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (
+      !isActive &&
+      user._id.toString() === req.user._id.toString()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "You cannot deactivate your own account",
+      });
+    }
+
+    if (!isActive && user.role === "admin" && user.isActive !== false) {
+      const activeAdmins = await User.countDocuments({
+        role: "admin",
+        isActive: true,
+      });
+
+      if (activeAdmins <= 1) {
+        return res.status(400).json({
+          success: false,
+          message: "Cannot deactivate the last active admin",
+        });
+      }
+    }
+
+    user.isActive = isActive;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: isActive
+        ? "User account activated successfully"
+        : "User account deactivated successfully",
+      data: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update user status",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
   getDashboardStats,
   getAllUsers,
   getUserById,
+  updateUserStatus,
 };

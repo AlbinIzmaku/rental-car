@@ -25,10 +25,10 @@ const protect = async (req, res, next) => {
 
     const user = await User.findById(decoded.id).select("-password");
 
-    if (!user) {
+    if (!user || user.isActive === false) {
       return res.status(401).json({
         success: false,
-        message: "User no longer exists.",
+        message: "User ccount is unavailable.",
       });
     }
 
